@@ -66451,8 +66451,8 @@ else A.jw("API call error: Status code - "+n)
 return A.X(null,r)}})
 return A.Y($async$pn,r)}}
 A.lj.prototype={
-aj(){var s="application/json",r=t.N,q=t.s
-return new A.wG(new A.qB(A.aB(["Content-Type",s,"Accept",s,"access-token",u.J],r,r)),A.a(["Option A","Option B","Option C"],q),A.a(["Position 1","Position 2","Position 3"],q),B.l)}}
+aj(){var s=t.N,r=t.s
+return new A.wG(new A.qB(A.aB(["access-token",u.J],s,s)),A.a(["Option A","Option B","Option C"],r),A.a(["Position 1","Position 2","Position 3"],r),B.l)}}
 A.wG.prototype={
 VT(){this.d.pn("https://api.dhan.co/positions")},
 VC(){this.d.pn("https://api.dhan.co//orders")},
@@ -66515,7 +66515,7 @@ ua(){var s=0,r=A.Z(t.H),q
 var $async$ua=A.a_(function(a,b){if(a===1)return A.W(b,r)
 while(true)switch(s){case 0:q=t.N
 s=2
-return A.a1(new A.qB(A.aB(["Content-Type","application/json","Accept","application/json","access-token",u.J],q,q)).mN("https://your-api-endpoint-1",A.aB(["key","value1"],q,q)),$async$ua)
+return A.a1(new A.qB(A.aB(["access-token",u.J],q,q)).mN("https://your-api-endpoint-1",A.aB(["key","value1"],q,q)),$async$ua)
 case 2:return A.X(null,r)}})
 return A.Y($async$ua,r)},
 Af(){var s=0,r=A.Z(t.H),q=this
@@ -66527,7 +66527,7 @@ uc(){var s=0,r=A.Z(t.H),q
 var $async$uc=A.a_(function(a,b){if(a===1)return A.W(b,r)
 while(true)switch(s){case 0:q=t.N
 s=2
-return A.a1(new A.qB(A.aB(["Content-Type","application/json","Accept","application/json","access-token",u.J],q,q)).mN("https://your-api-endpoint-1",A.aB(["key","value1"],q,q)),$async$uc)
+return A.a1(new A.qB(A.aB(["access-token",u.J],q,q)).mN("https://your-api-endpoint-1",A.aB(["key","value1"],q,q)),$async$uc)
 case 2:return A.X(null,r)}})
 return A.Y($async$uc,r)},
 O(a){var s=this,r=A.aj(a).ay,q=r.k2
