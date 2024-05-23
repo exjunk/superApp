@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:super_app/enum.dart';
 import 'package:super_app/response/GetOrderFromIdResponse.dart';
 import 'package:super_app/response/OrderPlacementResponse.dart';
+import 'package:super_app/utils/Logger.dart' as logger;
 
 import 'my_const.dart';
 
@@ -27,10 +28,10 @@ class ApiUtils {
 
     if (response.statusCode == 200) {
       // Handle successful response (e.g., print data)
-      print('API call successful! Response: ${response.body}');
+      logger.Logger.printLogs('API call successful! Response: ${response.body}');
     } else {
       // Handle error
-      print('API call error: Status code - ${response.statusCode}');
+      logger.Logger.printLogs('API call error: Status code - ${response.statusCode}');
     }
   }
 
@@ -44,11 +45,11 @@ class ApiUtils {
         handleWithHeaderStatus(response);
       }
       // Handle successful response (e.g., print data)
-      print('API call successful! Response: ${response.body} ${response.headers} -- ${response.request?.headers}');
+      logger.Logger.printLogs('API call successful! Response: ${response.body} ${response.headers} -- ${response.request?.headers}');
       return response;
     } else {
       // Handle error
-      print('API call error: Status code - ${response.statusCode}');
+      logger.Logger.printLogs('API call error: Status code - ${response.statusCode}');
     }
     return null;
   }

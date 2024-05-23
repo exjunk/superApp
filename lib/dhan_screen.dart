@@ -4,6 +4,8 @@ import 'package:super_app/api_call_util.dart';
 import 'package:super_app/my_const.dart';
 import 'package:super_app/response/FundLimitResponse.dart' as fund_limit;
 import 'package:super_app/response/GetPositionsResponse.dart' as get_position;
+import 'package:super_app/socket_connection.dart' as socket_connection;
+
 
 class DhanPositions extends StatefulWidget {
   @override
@@ -65,10 +67,10 @@ class _DhanPositionsState extends State<DhanPositions> {
     if (getPositionsData.positionType == "LONG") {
       // to close position we need to take reverse position
       transactionType = "SELL";
-      quantity = getPositionsData.buyQty;
+      quantity = getPositionsData.netQty;
     } else if (getPositionsData.positionType == "SHORT") {
       transactionType = "BUY";
-      quantity = getPositionsData.sellQty;
+      quantity = getPositionsData.netQty;
     }
     var productType = getPositionsData.productType;
 
@@ -77,8 +79,26 @@ class _DhanPositionsState extends State<DhanPositions> {
   }
 
   void _handleOrdersButtonPress() {
-    apiUtils.makeGetApiCall("${apiBaseUrl}orders");
+    testWebSocketClient();
   }
+
+  void testTcpClient() async {
+    final tcpClient = socket_connection.TcpClient('127.0.0.1', 65432);
+    await tcpClient.connect();
+    tcpClient.sendPing();
+    // Wait a few seconds to observe the response before closing
+    await Future.delayed(const Duration(seconds: 5));
+    tcpClient.close();
+  }
+
+  void testWebSocketClient() {
+    final wsClient = socket_connection.WebSocketClient('ws://localhost:8765');
+    wsClient.connect();
+
+    wsClient.sendMessage("BANK_NIFTY");
+    // Connection will handle ping-pong and close itself if needed
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -280,9 +300,6 @@ Row fundLimit(double startLimit, double availableBalance) {
 
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-   // crossAxisAlignment: CrossAxisAlignment.start,
-   // mainAxisSize: MainAxisSize.min,
-    // crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
         "Start Of Day Limit: $startLimit",
