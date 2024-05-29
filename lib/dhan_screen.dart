@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:super_app/api_call_util.dart';
@@ -5,6 +6,7 @@ import 'package:super_app/my_const.dart';
 import 'package:super_app/response/FundLimitResponse.dart' as fund_limit;
 import 'package:super_app/response/GetPositionsResponse.dart' as get_position;
 import 'package:super_app/socket_connection.dart' as socket_connection;
+import 'package:super_app/utils.dart';
 
 
 class DhanPositions extends StatefulWidget {
@@ -18,11 +20,14 @@ class _DhanPositionsState extends State<DhanPositions> {
   final List<get_position.Data> _positions = [];
   double startLimit = 0;
   double availableLimit = 0;
+  final wsClient = socket_connection.WebSocketClient('ws://localhost:8765');
+
 
   @override
   void initState() {
     super.initState();
     _getFundLimits();
+    wsClient.connect();
   }
 
   void addItemToList(List<get_position.Data> data) {
@@ -225,8 +230,11 @@ class _DhanPositionsState extends State<DhanPositions> {
                         onPressed: () {
                           var selectedIndex =
                               fetchSelectedIndex(_selectedOption);
+                          var clientOrderId =  Utils().generateCode(10);
                           apiUtils.makeGetApiCall(
-                              "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=CE&transaction_type=BUY");
+                              "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=CE&transaction_type=BUY&client_order_id=$clientOrderId");
+                          subscribeOrderStatus(wsClient,clientOrderId);
+
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
@@ -238,8 +246,10 @@ class _DhanPositionsState extends State<DhanPositions> {
                     ElevatedButton(
                       onPressed: () {
                         var selectedIndex = fetchSelectedIndex(_selectedOption);
+                        var clientOrderId =  Utils().generateCode(10);
                         apiUtils.makeGetApiCall(
-                            "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=PE&transaction_type=BUY");
+                            "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=PE&transaction_type=BUY&client_order_id=$clientOrderId");
+                        subscribeOrderStatus(wsClient, clientOrderId);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
@@ -334,3 +344,17 @@ String fetchSelectedIndex(int options) {
 
   return selected;
 }
+
+void subscribeOrderStatus(socket_connection.WebSocketClient websocketClient,String correlationId){
+  HashMap<String,String> map = HashMap();
+  map["action"] = "subscribe";
+  map["topic"] = "order_status";
+  HashMap<String,String> data = HashMap();
+  data["correlation_id"] = correlationId;
+  var dataJson = jsonEncode(data);
+  map["data"] = dataJson;
+  String message = jsonEncode(map);
+  websocketClient.sendMessage(message);
+}
+
+
