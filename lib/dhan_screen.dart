@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'package:session_storage/session_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:super_app/api_call_util.dart';
 import 'package:super_app/my_const.dart';
@@ -21,6 +22,7 @@ class _DhanPositionsState extends State<DhanPositions> {
   double startLimit = 0;
   double availableLimit = 0;
   final wsClient = socket_connection.WebSocketClient('ws://localhost:8765');
+  final sessionStroage = SessionStorage();
 
 
   @override
@@ -231,8 +233,9 @@ class _DhanPositionsState extends State<DhanPositions> {
                           var selectedIndex =
                               fetchSelectedIndex(_selectedOption);
                           var clientOrderId =  Utils().generateCode(10);
+                          var socketClientId = sessionStroage['socket_client_id'];
                           apiUtils.makeGetApiCall(
-                              "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=CE&transaction_type=BUY&client_order_id=$clientOrderId");
+                              "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=CE&transaction_type=BUY&socket_client_id=$socketClientId&client_order_id=$clientOrderId");
                           subscribeOrderStatus(wsClient,clientOrderId);
 
                         },
@@ -247,8 +250,10 @@ class _DhanPositionsState extends State<DhanPositions> {
                       onPressed: () {
                         var selectedIndex = fetchSelectedIndex(_selectedOption);
                         var clientOrderId =  Utils().generateCode(10);
+                        var socketClientId = sessionStroage['socket_client_id'];
+
                         apiUtils.makeGetApiCall(
-                            "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=PE&transaction_type=BUY&client_order_id=$clientOrderId");
+                            "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=PE&transaction_type=BUY&client_order_id=$clientOrderId&socket_client_id=$socketClientId");
                         subscribeOrderStatus(wsClient, clientOrderId);
                       },
                       style: ElevatedButton.styleFrom(

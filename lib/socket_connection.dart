@@ -4,6 +4,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/html.dart';
 import 'dart:async';
 import 'package:super_app/utils/Logger.dart' as logger;
+import 'package:session_storage/session_storage.dart';
+
 
 // for Web apps
 class WebSocketClient {
@@ -11,7 +13,7 @@ class WebSocketClient {
   late WebSocketChannel _channel;
   Timer? _pingTimer;
   Timer? _pongTimeoutTimer;
-
+  final _sessionStorage = SessionStorage();
   WebSocketClient(this.url);
 
   void connect() {
@@ -20,6 +22,8 @@ class WebSocketClient {
       logger.Logger.printLogs('Received: $message');
       if (message == 'pong') {
         _resetPongTimeout();
+      }else{
+        parseMessage(message);
       }
     }, onError: (error) {
       logger.Logger.printLogs('Error: $error');
@@ -28,6 +32,18 @@ class WebSocketClient {
       _cleanUpTimers();
     });
     _startPing();
+  }
+
+  void parseMessage(String message){
+    var json = jsonDecode(message);
+    var type = json['type'];
+
+    if(type == "IDAM"){
+      var data = json['data'];
+      var socketClientId = data['socket_client_id'];
+      logger.Logger.printLogs('Type : $socketClientId');
+      _sessionStorage['socket_client_id'] = socketClientId;
+    }
   }
 
   void sendMessage(String message) {
