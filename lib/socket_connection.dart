@@ -35,14 +35,18 @@ class WebSocketClient {
   }
 
   void parseMessage(String message){
-    var json = jsonDecode(message);
-    var type = json['type'];
+    try {
+      var json = const JsonDecoder().convert(message);
+      var type = json['type'];
 
-    if(type == "IDAM"){
-      var data = json['data'];
-      var socketClientId = data['socket_client_id'];
-      logger.Logger.printLogs('Type : $socketClientId');
-      _sessionStorage['socket_client_id'] = socketClientId;
+      if (type == "IDAM") {
+        var data = json['data'];
+        var socketClientId = data['socket_client_id'];
+        logger.Logger.printLogs('Type : $socketClientId');
+        _sessionStorage['socket_client_id'] = socketClientId.toString();
+      }
+    } catch(e){
+      logger.Logger.printLogs(e);
     }
   }
 
@@ -53,7 +57,7 @@ class WebSocketClient {
 
   void _startPing() {
     _pingTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      logger.Logger.printLogs('Sending ping');
+      //logger.Logger.printLogs('Sending ping');
       _channel.sink.add('ping');
       _startPongTimeout();
     });

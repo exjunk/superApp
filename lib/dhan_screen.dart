@@ -7,15 +7,18 @@ import 'package:super_app/my_const.dart';
 import 'package:super_app/response/FundLimitResponse.dart' as fund_limit;
 import 'package:super_app/response/GetPositionsResponse.dart' as get_position;
 import 'package:super_app/socket_connection.dart' as socket_connection;
+import 'package:super_app/socket_io_connection.dart';
 import 'package:super_app/utils.dart';
 
 
 class DhanPositions extends StatefulWidget {
+
   @override
   _DhanPositionsState createState() => _DhanPositionsState();
 }
 
 class _DhanPositionsState extends State<DhanPositions> {
+  final SocketService socketService = SocketService();
   var apiUtils = ApiUtils();
   int _selectedOption = 1; // Initially select option 1
   final List<get_position.Data> _positions = [];
@@ -23,13 +26,20 @@ class _DhanPositionsState extends State<DhanPositions> {
   double availableLimit = 0;
   final wsClient = socket_connection.WebSocketClient('ws://localhost:8765');
   final sessionStroage = SessionStorage();
+  final List<String> _messages = [];
 
 
   @override
   void initState() {
     super.initState();
     _getFundLimits();
-    wsClient.connect();
+    socketService.connect();
+    socketService.socket.on('message', (data) {
+      setState(() {
+        _messages.add(data);
+      });
+    });
+   // wsClient.connect();
   }
 
   void addItemToList(List<get_position.Data> data) {
@@ -86,7 +96,8 @@ class _DhanPositionsState extends State<DhanPositions> {
   }
 
   void _handleOrdersButtonPress() {
-    testWebSocketClient();
+   // testWebSocketClient();
+    sendSocketIoMessage();
   }
 
   void testTcpClient() async {
@@ -104,6 +115,10 @@ class _DhanPositionsState extends State<DhanPositions> {
 
     wsClient.sendMessage("BANK_NIFTY");
     // Connection will handle ping-pong and close itself if needed
+  }
+
+  void sendSocketIoMessage(){
+    socketService.sendMessage("PIng1");
   }
 
 
