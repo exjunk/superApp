@@ -16,12 +16,23 @@ class SocketService {
     // Handle connection event
     socket.on('connect', (_) {
       print('Connected to the server');
+
     });
 
     // Handle incoming messages
     socket.on('message', (data) {
-      print('Message received: $data');
+      //print('Message received: $data');
     });
+
+    // Handle incoming messages
+   /* socket.on('market_feed', (data) {
+      //print('Message received market_feed: $data');
+    });*/
+
+    // Handle incoming messages
+   /* socket.on('order_status', (data) {
+      //print('Message received market_feed: $data');
+    });*/
 
     // Handle disconnection event
     socket.on('disconnect', (_) {
