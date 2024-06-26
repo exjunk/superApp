@@ -1,7 +1,5 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart';
 import 'package:session_storage/session_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:super_app/api_call_util.dart';
@@ -14,6 +12,8 @@ import 'package:super_app/response/GetOrderFromIdResponse.dart' as get_order;
 import 'package:super_app/socket_io_connection.dart' as socket_io;
 import 'package:super_app/utils.dart';
 import 'package:super_app/utils/Logger.dart';
+import 'package:super_app/level_trigger_screen.dart';
+
 
 
 class DhanPositions extends StatefulWidget {
@@ -46,19 +46,16 @@ class _DhanPositionsState extends State<DhanPositions> {
       final Map parsed = jsonDecode(data);
       final getOrderFromIdResponse = get_order.GetOrderFromIdResponse.fromJson(parsed);
       Logger.printLogs("socket_on--${getOrderFromIdResponse.status}");
-      setState(() {
-        if(getOrderFromIdResponse.data != null && getOrderFromIdResponse.data!.securityId != null) {
-          _trackSecurityID.add(getOrderFromIdResponse.data!.securityId!);
-        }
+      if(getOrderFromIdResponse.data != null && getOrderFromIdResponse.data!.securityId != null) {
+        _trackSecurityID.add(getOrderFromIdResponse.data!.securityId!);
+        Logger.printLogs(getOrderFromIdResponse.data!.tradingSymbol);
+        _handlePositionsButtonPress();
+      }
 
-       // addItemToList(data);
-      });
+
     });
     socketService.socket.on('market_feed', (data) {
-      //Logger.printLogs(data);
-      setState(() {
-        //Logger.printLogs("order_status $data");
-      });
+
     });
    // wsClient.connect();
   }
@@ -118,10 +115,10 @@ class _DhanPositionsState extends State<DhanPositions> {
         "${apiBaseUrl}closePosition?security_id=$securityId&exchange_segment=$exchange&transaction_type=$transactionType&quantity=$quantity&product_type=$productType");
   }
 
-  void _onOrderPlacement(String selectedIndex,String clientOrderId,String? socketClientId) async{
+  void _onOrderPlacement(String selectedIndex,String clientOrderId,String? socketClientId,String optionType) async{
 
     final response = await apiUtils.makeGetApiCall(
-        "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=CE&transaction_type=BUY&socket_client_id=$socketClientId&client_order_id=$clientOrderId");
+        "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=$optionType&transaction_type=BUY&socket_client_id=$socketClientId&client_order_id=$clientOrderId&dhan_client_id=$dhanClientId");
 
     if (response != null) {
       try {
@@ -141,18 +138,16 @@ class _DhanPositionsState extends State<DhanPositions> {
   }
 
   void _handleOrdersButtonPress() {
-   // testWebSocketClient();
-    sendSocketIoMessage();
+    _navigateToTriggerLevelScreen();
   }
 
- /* void testTcpClient() async {
-    final tcpClient = socket_connection.TcpClient('127.0.0.1', 65432);
-    await tcpClient.connect();
-    tcpClient.sendPing();
-    // Wait a few seconds to observe the response before closing
-    await Future.delayed(const Duration(seconds: 5));
-    tcpClient.close();
-  }*/
+  void _navigateToTriggerLevelScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => (LevelMarkerScreen())), // Replace with your new screen widget
+    );
+  }
+
 
   /*void testWebSocketClient() {
     final wsClient = socket_connection.WebSocketClient('ws://localhost:8765');
@@ -294,7 +289,7 @@ class _DhanPositionsState extends State<DhanPositions> {
                               fetchSelectedIndex(_selectedOption);
                           var clientOrderId =  Utils().generateCode(10);
                           var socketClientId = sessionStroage['socket_client_id'];
-                          _onOrderPlacement(selectedIndex,clientOrderId,socketClientId);
+                          _onOrderPlacement(selectedIndex,clientOrderId,socketClientId,"CE");
                              subscribeOrderStatus(socketService,clientOrderId);
 
                         },
@@ -307,13 +302,11 @@ class _DhanPositionsState extends State<DhanPositions> {
                     const SizedBox(width: 20),
                     ElevatedButton(
                       onPressed: () {
-                        var selectedIndex = fetchSelectedIndex(_selectedOption);
+                        var selectedIndex =
+                        fetchSelectedIndex(_selectedOption);
                         var clientOrderId =  Utils().generateCode(10);
                         var socketClientId = sessionStroage['socket_client_id'];
-
-                        apiUtils.makeGetApiCall(
-                            "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=PE&transaction_type=BUY&client_order_id=$clientOrderId&socket_client_id=$socketClientId");
-                        subscribeOrderStatus(socketService, clientOrderId);
+                        _onOrderPlacement(selectedIndex,clientOrderId,socketClientId,"PE");
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
