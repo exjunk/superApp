@@ -1,5 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:super_app/my_const.dart';
+import 'package:super_app/api_call_util.dart';
+import 'package:super_app/response/GetTriggerLevelsResponse.dart' as triggerLevel;
+import 'package:super_app/utils/Logger.dart';
+
 
 class LevelMarkerScreen extends StatefulWidget {
   @override
@@ -7,18 +13,46 @@ class LevelMarkerScreen extends StatefulWidget {
 }
 
 class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
-  List<Map<String, dynamic>> items = [
-    {
-      'indexName': bankNifty,
-      'triggerPrice': '100',
-      'optionType': optionTypeCE,
-    },
-    {
-      'indexName': nifty,
-      'triggerPrice': '200',
-      'optionType': optionTypeCE,
-    },
-  ];
+
+  var apiUtils = ApiUtils();
+  List<Map<String, dynamic>> items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initList();
+  }
+
+  void _initList() async{
+    final response =  await apiUtils.makeGetApiCall("${apiBaseUrl}getLevels?dhan_client_id=$dhanClientId");
+    if(response != null){
+      try {
+        final Map parsed = jsonDecode(response.body);
+        final triggerLevelResponse = triggerLevel.GetTriggerLevelsResponse.fromJson(parsed);
+        var data = triggerLevelResponse.data;
+        if(data != null) {
+
+          List<Map<String, dynamic>> tempList = [];
+          for (triggerLevel.Data item in data) {
+            var map = <String,String>{};
+            map["id"] = item.id!.toString() ;
+            map["indexName"] =  item.indexName! ;
+            map["triggerPrice"] = item.priceLevel!.toString();
+            map["optionType"] = item.optionType!;
+            tempList.add(map);
+          }
+          setState(() {
+            items.addAll(tempList);
+          });
+        }
+
+      }on Exception catch(e){
+        Logger.printLogs(e);
+      }
+    }
+  }
+
+
 
   void _editItem(int index) async {
     final result = await Navigator.push(
@@ -53,9 +87,15 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
   }
 
   void _deleteItem(int index) {
+    var item = items[index];
+    deleteLevels(item['indexName'],item['triggerPrice']);
     setState(() {
       items.removeAt(index);
     });
+  }
+
+  void deleteLevels(String index,String level) async{
+    final response = await apiUtils.makeGetApiCall("${apiBaseUrl}deleteLevels?dhan_client_id=$dhanClientId&index_name=$index&price_level=$level");
   }
 
   @override
@@ -132,6 +172,8 @@ class _EditScreenState extends State<EditScreen> {
   late String _triggerPrice;
   late String _optionType;
   late String _indexName;
+  late String _id;
+  var apiUtils = ApiUtils();
 
   @override
   void initState() {
@@ -139,7 +181,14 @@ class _EditScreenState extends State<EditScreen> {
     _indexName = widget.item['indexName'] ?? bankNifty;
     _triggerPrice = widget.item['triggerPrice'] ?? '';
     _optionType = widget.item['optionType'] ?? optionTypeCE;
+    _id = widget.item['id']?? '';
   }
+
+  void _onSavePress() async{
+     await apiUtils.makeGetApiCall("${apiBaseUrl}addLevels?&id=$_id&dhan_client_id=$dhanClientId&index_name=$_indexName&option_type=$_optionType&price_level=$_triggerPrice");
+    //Logger.printLogs(response);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -242,8 +291,10 @@ class _EditScreenState extends State<EditScreen> {
                     Center(
                       child: ElevatedButton(
                         onPressed: () {
+
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
+                            _onSavePress();
                             Navigator.pop(context, {
                               'indexName': _indexName,
                               'triggerPrice': _triggerPrice,

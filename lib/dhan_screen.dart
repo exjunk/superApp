@@ -126,6 +126,7 @@ class _DhanPositionsState extends State<DhanPositions> {
         final orderPlacementResponse = order_placement.OrderPlacementResponse
             .fromJson(parsed);
 
+
         setState(() {
           if (orderPlacementResponse.data != null) {
             var security_id = orderPlacementResponse.securityID;
