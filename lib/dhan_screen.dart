@@ -13,6 +13,7 @@ import 'package:super_app/socket_io_connection.dart' as socket_io;
 import 'package:super_app/utils.dart';
 import 'package:super_app/utils/Logger.dart';
 import 'package:super_app/level_trigger_screen.dart';
+import 'package:super_app/enum.dart' as enum_value;
 
 
 
@@ -116,9 +117,9 @@ class _DhanPositionsState extends State<DhanPositions> {
   }
 
   void _onOrderPlacement(String selectedIndex,String clientOrderId,String? socketClientId,String optionType) async{
-
+    String productType = enum_value.ProductType.INTRADAY.name;
     final response = await apiUtils.makeGetApiCall(
-        "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=$optionType&transaction_type=BUY&socket_client_id=$socketClientId&client_order_id=$clientOrderId&dhan_client_id=$dhanClientId");
+        "${apiBaseUrl}placeOrder?index=$selectedIndex&option_type=$optionType&transaction_type=BUY&socket_client_id=$socketClientId&client_order_id=$clientOrderId&dhan_client_id=$dhanClientId&product_type=$productType");
 
     if (response != null) {
       try {

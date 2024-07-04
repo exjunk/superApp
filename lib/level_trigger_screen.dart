@@ -5,6 +5,7 @@ import 'package:super_app/my_const.dart';
 import 'package:super_app/api_call_util.dart';
 import 'package:super_app/response/GetTriggerLevelsResponse.dart' as triggerLevel;
 import 'package:super_app/utils/Logger.dart';
+import 'package:super_app/response/AddTriggerLevelResponse.dart' as addTrigger;
 
 
 class LevelMarkerScreen extends StatefulWidget {
@@ -42,6 +43,7 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
             tempList.add(map);
           }
           setState(() {
+            items.clear();
             items.addAll(tempList);
           });
         }
@@ -55,6 +57,7 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
 
 
   void _editItem(int index) async {
+    print(items[index]);
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -64,6 +67,7 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
       ),
     );
     if (result != null) {
+     // _initList();
       setState(() {
         items[index] = result;
       });
@@ -80,6 +84,7 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
       ),
     );
     if (result != null) {
+      print(result);
       setState(() {
         items.add(result);
       });
@@ -184,9 +189,19 @@ class _EditScreenState extends State<EditScreen> {
     _id = widget.item['id']?? '';
   }
 
-  void _onSavePress() async{
-     await apiUtils.makeGetApiCall("${apiBaseUrl}addLevels?&id=$_id&dhan_client_id=$dhanClientId&index_name=$_indexName&option_type=$_optionType&price_level=$_triggerPrice");
-    //Logger.printLogs(response);
+  Future<addTrigger.AddTriggerLevelResponse?>  _onSavePress() async{
+     final response = await apiUtils.makeGetApiCall("${apiBaseUrl}addLevels?&id=$_id&dhan_client_id=$dhanClientId&index_name=$_indexName&option_type=$_optionType&price_level=$_triggerPrice");
+     if (response != null) {
+       try {
+         final Map parsed = jsonDecode(response.body);
+         final addTriggerResponse = addTrigger.AddTriggerLevelResponse.fromJson(parsed);
+          return addTriggerResponse;
+       } on Exception catch(e){
+         Logger.printLogs(e);
+       }
+     }
+     return null;
+     //Logger.printLogs(response);
   }
 
 
@@ -294,11 +309,25 @@ class _EditScreenState extends State<EditScreen> {
 
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-                            _onSavePress();
-                            Navigator.pop(context, {
-                              'indexName': _indexName,
-                              'triggerPrice': _triggerPrice,
-                              'optionType': _optionType,
+                            _onSavePress().then((addTriggerResponse){
+                              if(addTriggerResponse != null) {
+                                _id = addTriggerResponse.data!.id.toString();
+                                _triggerPrice =
+                                    addTriggerResponse.data!.priceLevel
+                                        .toString();
+                                _indexName = addTriggerResponse.data!.indexName
+                                    .toString();
+                                _optionType =
+                                    addTriggerResponse.data!.optionType
+                                        .toString();
+
+                                Navigator.pop(context, {
+                                  'indexName': _indexName,
+                                  'triggerPrice': _triggerPrice,
+                                  'optionType': _optionType,
+                                  'id':_id
+                                });
+                              }
                             });
                           }
                         },
