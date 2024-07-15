@@ -1,11 +1,12 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:super_app/my_const.dart';
 
 class SocketService {
   late IO.Socket socket;
 
   void connect() {
     // Configure the socket connection
-    socket = IO.io('http://localhost:5000', <String, dynamic>{
+    socket = IO.io(socketBaseUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });

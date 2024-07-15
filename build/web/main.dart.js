@@ -86490,7 +86490,7 @@ else k=!0
 else k=!0
 else k=!0}else k=!1
 if(k){p.a=!0
-if((l?null:m.cy)==="TRADED")p.iu("https://15.207.51.28:5000openPosition")}}m=A.nr(A.no(h).c.a.h(0,"charset")).d7(0,i.w)
+if((l?null:m.cy)==="TRADED")p.iu("http://3.109.144.42:8000openPosition")}}m=A.nr(A.no(h).c.a.h(0,"charset")).d7(0,i.w)
 h=h.k(0)
 l=i.a
 A.eg("API call successful! Response: "+m+" "+h+" -- "+l.r.k(0))
@@ -86521,7 +86521,7 @@ else n=!1
 s=n?5:6
 break
 case 5:s=7
-return A.Y(m.iu("https://15.207.51.28:5000orderstatus?&order_id="+A.h(o?null:p.a)),$async$$1)
+return A.Y(m.iu("http://3.109.144.42:8000orderstatus?&order_id="+A.h(o?null:p.a)),$async$$1)
 case 7:case 6:s=3
 break
 case 4:m.a=!1
@@ -86546,7 +86546,7 @@ aej(a){this.ad(new A.ajo(this,a))},
 vT(){var s=0,r=A.U(t.H),q=this,p,o,n,m,l,k,j
 var $async$vT=A.V(function(a,b){if(a===1)return A.R(b,r)
 while(true)switch(s){case 0:s=2
-return A.Y(q.e.iu("https://15.207.51.28:5000fundLimits"),$async$vT)
+return A.Y(q.e.iu("http://3.109.144.42:8000fundLimits"),$async$vT)
 case 2:j=b
 if(j!=null){p=B.ax.kF(0,A.nr(A.no(j.e).c.a.h(0,"charset")).d7(0,j.w),null)
 o=new A.a3l()
@@ -86571,7 +86571,7 @@ return A.T($async$vT,r)},
 r4(){var s=0,r=A.U(t.H),q=this,p,o,n
 var $async$r4=A.V(function(a,b){if(a===1)return A.R(b,r)
 while(true)switch(s){case 0:s=2
-return A.Y(q.e.iu("https://15.207.51.28:5000openPosition"),$async$r4)
+return A.Y(q.e.iu("http://3.109.144.42:8000openPosition"),$async$r4)
 case 2:n=b
 if(n!=null){p=A.aIG(B.ax.kF(0,A.nr(A.no(n.e).c.a.h(0,"charset")).d7(0,n.w),null)).a
 if(p!=null){o=A.a1(p).i("aP<1>")
@@ -86581,7 +86581,7 @@ rj(a,b,c,d){return this.a9r(a,b,c,d)},
 a9r(a,b,c,d){var s=0,r=A.U(t.H),q=this,p,o,n,m,l,k,j
 var $async$rj=A.V(function(e,f){if(e===1)return A.R(f,r)
 while(true)switch(s){case 0:s=2
-return A.Y(q.e.iu("https://15.207.51.28:5000placeOrder?index="+a+"&option_type="+d+"&transaction_type=BUY&socket_client_id="+A.h(c)+"&client_order_id="+b+"&dhan_client_id=1100323569&product_type=INTRADAY"),$async$rj)
+return A.Y(q.e.iu("http://3.109.144.42:8000placeOrder?index="+a+"&option_type="+d+"&transaction_type=BUY&socket_client_id="+A.h(c)+"&client_order_id="+b+"&dhan_client_id=1100323569&product_type=INTRADAY"),$async$rj)
 case 2:j=f
 if(j!=null)try{m=j
 p=B.ax.kF(0,A.nr(A.no(m.e).c.a.h(0,"charset")).d7(0,m.w),null)
@@ -86651,7 +86651,7 @@ $0(){var s,r,q=this.a,p=q.r[this.b],o=p.ch,n=p.fr,m=p.cy
 if(m==="LONG"){s=p.cx
 r="SELL"}else if(m==="SHORT"){s=p.cx
 r="BUY"}else{r=""
-s=-1}q.e.iu("https://15.207.51.28:5000closePosition?security_id="+A.h(n)+"&exchange_segment="+A.h(o)+"&transaction_type="+r+"&quantity="+A.h(s)+"&product_type="+A.h(p.db))},
+s=-1}q.e.iu("http://3.109.144.42:8000closePosition?security_id="+A.h(n)+"&exchange_segment="+A.h(o)+"&transaction_type="+r+"&quantity="+A.h(s)+"&product_type="+A.h(p.db))},
 $S:0}
 A.ajv.prototype={
 $1(a){var s=this.a
@@ -86716,7 +86716,7 @@ this.w5()},
 w5(){var s=0,r=A.U(t.H),q=this,p,o,n,m,l,k,j,i,h,g,f,e,d,c
 var $async$w5=A.V(function(a,a0){if(a===1)return A.R(a0,r)
 while(true)switch(s){case 0:s=2
-return A.Y(q.d.iu("https://15.207.51.28:5000getLevels?dhan_client_id=1100323569"),$async$w5)
+return A.Y(q.d.iu("http://3.109.144.42:8000getLevels?dhan_client_id=1100323569"),$async$w5)
 case 2:c=a0
 if(c!=null)try{i=c
 p=B.ax.kF(0,A.nr(A.no(i.e).c.a.h(0,"charset")).d7(0,i.w),null)
@@ -86772,7 +86772,7 @@ y0(a,b){return this.agw(a,b)},
 agw(a,b){var s=0,r=A.U(t.H),q=this
 var $async$y0=A.V(function(c,d){if(c===1)return A.R(d,r)
 while(true)switch(s){case 0:s=2
-return A.Y(q.d.iu("https://15.207.51.28:5000deleteLevels?dhan_client_id=1100323569&index_name="+a+"&price_level="+b),$async$y0)
+return A.Y(q.d.iu("http://3.109.144.42:8000deleteLevels?dhan_client_id=1100323569&index_name="+a+"&price_level="+b),$async$y0)
 case 2:return A.S(null,r)}})
 return A.T($async$y0,r)},
 L(a){var s=null
@@ -86832,7 +86832,7 @@ j===$&&A.a()
 i=p.e
 i===$&&A.a()
 s=3
-return A.Y(p.x.iu("https://15.207.51.28:5000addLevels?&id="+f+"&dhan_client_id=1100323569&index_name="+k+"&option_type="+j+"&price_level="+i),$async$wp)
+return A.Y(p.x.iu("http://3.109.144.42:8000addLevels?&id="+f+"&dhan_client_id=1100323569&index_name="+k+"&option_type="+j+"&price_level="+i),$async$wp)
 case 3:o=b
 if(o!=null)try{f=o
 n=B.ax.kF(0,A.nr(A.no(f.e).c.a.h(0,"charset")).d7(0,f.w),null)
@@ -87218,8 +87218,8 @@ s.l(0,"orderId",this.a)
 s.l(0,"orderStatus",this.b)
 return s}}
 A.aek.prototype={
-xG(){var s,r,q,p,o,n=this,m="http://localhost:5000",l=null,k="query",j=t.N,i=t.z,h=A.a9(["transports",A.b(["websocket"],t.s),"autoConnect",!1],j,i),g=A.eZ(m),f=g.geb()+"://"+g.gjW(g)+":"+g.gnR(g),e=g.gdh(g),d=$.aqz.af(0,f)&&$.aqz.h(0,f).d.af(0,e),c=h.h(0,"forceNew")===!0||h.h(0,"force new connection")===!0||!1===h.h(0,"multiplex")||d,b=A.bo("io")
-if(c){$.aEY().aT(B.r,"ignoring socket cache for http://localhost:5000",l,l)
+xG(){var s,r,q,p,o,n=this,m="http://3.109.144.42:5000",l=null,k="query",j=t.N,i=t.z,h=A.a9(["transports",A.b(["websocket"],t.s),"autoConnect",!1],j,i),g=A.eZ(m),f=g.geb()+"://"+g.gjW(g)+":"+g.gnR(g),e=g.gdh(g),d=$.aqz.af(0,f)&&$.aqz.h(0,f).d.af(0,e),c=h.h(0,"forceNew")===!0||h.h(0,"force new connection")===!0||!1===h.h(0,"multiplex")||d,b=A.bo("io")
+if(c){$.aEY().aT(B.r,"ignoring socket cache for http://3.109.144.42:5000",l,l)
 b.b=A.axY(h,m)}else{s=$.aqz.h(0,f)
 if(s==null){s=A.axY(h,m)
 $.aqz.l(0,f,s)}b.b=s}if(g.gl2(g).length!==0&&h.h(0,k)==null)h.l(0,k,g.gl2(g))
