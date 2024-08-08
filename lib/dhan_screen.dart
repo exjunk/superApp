@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'package:session_storage/session_storage.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'package:super_app/utils.dart';
 import 'package:super_app/utils/Logger.dart';
 import 'package:super_app/level_trigger_screen.dart';
 import 'package:super_app/enum.dart' as enum_value;
+import 'package:super_app/app_config.dart';
 
 class DhanPositions extends StatefulWidget {
   @override
@@ -31,14 +31,32 @@ class _DhanPositionsState extends State<DhanPositions> {
   double startLimit = 0;
   double availableLimit = 0;
   final sessionStroage = SessionStorage();
-  final Set<String> _trackSecurityID = Set();
+  final Set<String> _trackSecurityID = {};
+  bool _initialDataLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _getFundLimits();
     socketService.connect();
     _initializeSocketListeners();
+    _loadInitialData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialDataLoaded) {
+      _loadInitialData();
+    }
+  }
+
+  Future<void> _loadInitialData() async {
+    await _getFundLimits();
+    await _handleOpenOrderButtonPress();
+    await _handlePositionsButtonPress();
+    setState(() {
+      _initialDataLoaded = true;
+    });
   }
 
   void _initializeSocketListeners() {
@@ -60,22 +78,29 @@ class _DhanPositionsState extends State<DhanPositions> {
   }
 
   void _handleMarketFeed(dynamic data) {
-    Logger.printLogs(data);
     if (data is Map<String, dynamic> && data['type'] == 'Ticker Data') {
       String securityId = data['security_id'].toString();
-      num ltp = data['LTP'];
-       Logger.printLogs(ltp);
+      num ltp = double.parse(data['LTP']);
+
       bool updated = false;
+
+      // Update open orders
       for (var order in _openOrders) {
-        //if (order.securityId == securityId) {
-          setState(() {
-            order.ltp = ltp;
-            updated = true;
-          });
-        //}
+        if (order.securityId == securityId) {
+          order.ltp = ltp;
+          updated = true;
+        }
       }
 
-      // Only rebuild if an order was actually updated
+      // Update positions
+      for (var position in _positions) {
+        if (position.securityId == securityId) {
+          position.ltp = ltp.toDouble();
+          updated = true;
+        }
+      }
+
+      // Only rebuild if an order or position was actually updated
       if (updated) {
         setState(() {});
       }
@@ -100,8 +125,7 @@ class _DhanPositionsState extends State<DhanPositions> {
     final response = await apiUtils.makeGetApiCall("${apiBaseUrl}openPosition");
     if (response != null) {
       final Map parsed = jsonDecode(response.body);
-      final getPositionResponse =
-          get_position.GetPositionsResponse.fromJson(parsed);
+      final getPositionResponse = get_position.GetPositionsResponse.fromJson(parsed);
       if (getPositionResponse.data != null) {
         var filterOpenPosition = getPositionResponse.data!
             .where((element) => element.positionType != "CLOSED")
@@ -109,6 +133,13 @@ class _DhanPositionsState extends State<DhanPositions> {
         setState(() {
           _positions.clear();
           _positions.addAll(filterOpenPosition);
+
+          // Add security IDs to _trackSecurityID set
+          for (var position in _positions) {
+            if (position.securityId != null) {
+              _trackSecurityID.add(position.securityId!);
+            }
+          }
         });
       }
     }
@@ -144,6 +175,29 @@ class _DhanPositionsState extends State<DhanPositions> {
     apiUtils.makeGetApiCall(
         "${apiBaseUrl}closePosition?security_id=$securityId&exchange_segment=$exchange&transaction_type=$transactionType&quantity=$quantity&product_type=$productType");
   }
+
+  Future<void> _onOpenOrderCancel(open_order.Data openOrder) async{
+    var orderId = openOrder.orderId;
+    apiUtils.makeGetApiCall(
+        "${apiBaseUrl}cancelOpenOrders?order_id=$orderId");
+    _handleOpenOrderButtonPress();
+  }
+
+  Future<void> _onOpenOrderModification(open_order.Data openOrder) async{
+    var orderId = openOrder.orderId;
+    var quantity = openOrder.quantity;
+    var price = openOrder.price;
+    var leg = openOrder.legName;
+    var validity = openOrder.validity;
+    var orderType = openOrder.orderType;
+    var disclosed = openOrder.disclosedQuantity;
+    var trigger = openOrder.triggerPrice;
+
+    apiUtils.makeGetApiCall(
+        "${apiBaseUrl}modifyOpenOrders?order_id=$orderId&quantity=$quantity&price=$price&leg=$leg&validity=$validity&order_type=$orderType&disclosed=$disclosed&trigger=$trigger");
+    _handleOpenOrderButtonPress();
+  }
+
 
   Future<void> _onOrderPlacement(String selectedIndex, String clientOrderId,
       String? socketClientId, String optionType) async {
@@ -189,62 +243,73 @@ class _DhanPositionsState extends State<DhanPositions> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Super App Trader'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AppConfigScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          _handlePositionsButtonPress();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.greenAccent,
+                        ),
+                        child: const Text('Open Positions',
+                            style: TextStyle(color: Colors.black)),
+                      ),
+                      _buildPositionsList(),
+                    ],
+                  ),
+                ),
+                const Divider(thickness: 1, color: Colors.black),
+                Expanded(
+                  child: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          _handleOpenOrderButtonPress();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.greenAccent,
+                        ),
+                        child: const Text('Open Orders',
+                            style: TextStyle(color: Colors.black)),
+                      ),
+                      _buildOpenOrderList(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const VerticalDivider(thickness: 1),
+          Expanded(
             child: Stack(
               children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              _handlePositionsButtonPress();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.greenAccent,
-                            ),
-                            child: const Text('Open Positions',
-                                style: TextStyle(color: Colors.black)),
-                          ),
-                          // Open positions list
-                          _buildPositionsList(),
-                        ],
-                      ),
-                    ),
-                    const Divider(thickness: 1, color: Colors.black),
-                    // Optional divider
-                    Expanded(
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              _handleOpenOrderButtonPress();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.greenAccent,
-                            ),
-                            child: const Text('Open Orders',
-                                style: TextStyle(color: Colors.black)),
-                          ),
-                          // Open positions list
-                          _buildOpenOrderList(),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                _buildRightSide(),
                 Positioned(
                   bottom: 16.0,
                   right: 16.0,
                   child: FloatingActionButton(
                     onPressed: () {
                       _navigateToTriggerLevelScreen();
-                      // Handle button press
                     },
                     child: const Icon(Icons.add),
                   ),
@@ -252,8 +317,6 @@ class _DhanPositionsState extends State<DhanPositions> {
               ],
             ),
           ),
-          const VerticalDivider(thickness: 1),
-          _buildRightSide(),
         ],
       ),
     );
@@ -261,40 +324,65 @@ class _DhanPositionsState extends State<DhanPositions> {
 
   Widget _buildPositionsList() {
     return Expanded(
-        child: ListView.builder(
-      scrollDirection: Axis.vertical,
-      shrinkWrap: true,
-      itemCount: _positions.length,
-      itemBuilder: (context, index) {
-        return Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_positions[index].tradingSymbol!),
-              const Divider(height: 10.0, thickness: 10.0),
-              Text(_positions[index].costPrice.toString()),
-              const Divider(height: 10.0, thickness: 10.0),
-              Text(_positions[index].buyQty.toString()),
-              const Divider(height: 10.0, thickness: 10.0),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle button press
-                  _onClosePositionClick(_positions[index]);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+      child: ListView.builder(
+        itemCount: _positions.length,
+        itemBuilder: (context, index) {
+          final position = _positions[index];
+          return Container(
+            height: 72,
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            position.tradingSymbol!,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'LTP: ${position.ltp?.toStringAsFixed(2)}',
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'Cost: ${position.costPrice?.toStringAsFixed(2) ?? "N/A"}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'Qty: ${position.buyQty}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _onClosePositionClick(position),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      child: const Text('Close', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
                 ),
-                child: const Text('Close Position',
-                    style: TextStyle(color: Colors.white)),
               ),
-            ],
-          ),
-        );
-      },
-    ));
+            ),
+          );
+        },
+      ),
+    );
   }
 
 
@@ -305,11 +393,11 @@ class _DhanPositionsState extends State<DhanPositions> {
         itemCount: _openOrders.length,
         itemBuilder: (context, index) {
           bool isEditing = index == _editingIndex;
-          return Container(
+          return SizedBox(
             height: 72,
             child: Card(
               elevation: 2,
-              margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
@@ -322,10 +410,10 @@ class _DhanPositionsState extends State<DhanPositions> {
                         children: [
                           Text(
                             _openOrders[index].tradingSymbol!,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
                             'LTP: ${_openOrders[index].ltp?.toStringAsFixed(2) ?? "0.0"}',
                             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -367,6 +455,7 @@ class _DhanPositionsState extends State<DhanPositions> {
                         setState(() {
                           if (isEditing) {
                             // Save logic here
+                            _onOpenOrderModification(_openOrders[index]);
                             _editingIndex = -1; // Exit edit mode
                           } else {
                             _editingIndex = index; // Enter edit mode
@@ -375,9 +464,10 @@ class _DhanPositionsState extends State<DhanPositions> {
                       },
                     ),
                     IconButton(
-                      icon: Icon(Icons.cancel, color: Colors.red, size: 20),
+                      icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
                       onPressed: () {
                         // Handle cancel order
+                        _onOpenOrderCancel(_openOrders[index]);
                       },
                     ),
                   ],
@@ -403,20 +493,20 @@ class _DhanPositionsState extends State<DhanPositions> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.blue,
             fontSize: 12,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 4), // Add some space between label and textfield
+        const SizedBox(height: 4), // Add some space between label and textfield
         SizedBox(
           height: 36, // Reduced height to accommodate the label
           child: TextFormField(
             initialValue: value,
             keyboardType: TextInputType.number,
             onChanged: onChanged,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
             ),
@@ -426,7 +516,7 @@ class _DhanPositionsState extends State<DhanPositions> {
     )
         : Text(
       value,
-      style: TextStyle(fontSize: 14),
+      style: const TextStyle(fontSize: 14),
     );
   }
 

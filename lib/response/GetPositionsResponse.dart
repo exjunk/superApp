@@ -106,7 +106,8 @@ class Data {
       num? sellAvg, 
       num? sellQty, 
       String? tradingSymbol, 
-      num? unrealizedProfit,}){
+      num? unrealizedProfit,
+      num? ltp}){
     _buyAvg = buyAvg;
     _buyQty = buyQty;
     _carryForwardBuyQty = carryForwardBuyQty;
@@ -135,6 +136,7 @@ class Data {
     _sellQty = sellQty;
     _tradingSymbol = tradingSymbol;
     _unrealizedProfit = unrealizedProfit;
+    _ltp = ltp;
 }
 
   Data.fromJson(dynamic json) {
@@ -195,6 +197,7 @@ class Data {
   num? _sellQty;
   String? _tradingSymbol;
   num? _unrealizedProfit;
+  num? _ltp;
 Data copyWith({  num? buyAvg,
   num? buyQty,
   num? carryForwardBuyQty,
@@ -223,6 +226,7 @@ Data copyWith({  num? buyAvg,
   num? sellQty,
   String? tradingSymbol,
   num? unrealizedProfit,
+  num? ltp,
 }) => Data(  buyAvg: buyAvg ?? _buyAvg,
   buyQty: buyQty ?? _buyQty,
   carryForwardBuyQty: carryForwardBuyQty ?? _carryForwardBuyQty,
@@ -251,6 +255,7 @@ Data copyWith({  num? buyAvg,
   sellQty: sellQty ?? _sellQty,
   tradingSymbol: tradingSymbol ?? _tradingSymbol,
   unrealizedProfit: unrealizedProfit ?? _unrealizedProfit,
+  ltp: ltp ?? _ltp,
 );
   num? get buyAvg => _buyAvg;
   num? get buyQty => _buyQty;
@@ -280,6 +285,11 @@ Data copyWith({  num? buyAvg,
   num? get sellQty => _sellQty;
   String? get tradingSymbol => _tradingSymbol;
   num? get unrealizedProfit => _unrealizedProfit;
+  num? get ltp => _ltp;
+
+  set ltp(num? value) {
+    _ltp = value;
+  }
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -311,6 +321,7 @@ Data copyWith({  num? buyAvg,
     map['sellQty'] = _sellQty;
     map['tradingSymbol'] = _tradingSymbol;
     map['unrealizedProfit'] = _unrealizedProfit;
+    map['ltp'] = _ltp;
     return map;
   }
 
