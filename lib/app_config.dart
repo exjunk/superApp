@@ -9,7 +9,7 @@ class AppConfigScreen extends StatefulWidget {
 
 class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
-  bool _isEditing = false;
+  bool _isEditing = true;
   bool _isSaving = false;
   late AnimationController _animationController;
 
@@ -29,7 +29,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    _animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
   }
 
   @override
@@ -62,7 +62,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
     });
 
     // Simulate saving process
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
       _isEditing = false;
@@ -70,8 +70,17 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
     });
     _animationController.reverse();
 
+    /*ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Changes saved successfully')),
+    );*/
+    if (mounted) {
+      showSavedSuccessfully(context);
+    }
+  }
+
+  void showSavedSuccessfully(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Changes saved successfully')),
+      const SnackBar(content: Text('Changes saved successfully')),
     );
   }
 
@@ -79,7 +88,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -92,7 +101,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
               _buildSideNavigation(),
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(30),
@@ -100,7 +109,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
                         blurRadius: 10,
-                        offset: Offset(0, 5),
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
@@ -123,31 +132,31 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
       floatingActionButton: _isEditing
           ? FloatingActionButton(
         onPressed: _saveChanges,
+        backgroundColor: const Color(0xFF6B8E23),
         child: _isSaving
             ? Lottie.network(
           'https://assets3.lottiefiles.com/packages/lf20_yw3nyrsv.json',
           width: 40,
           height: 40,
         )
-            : Icon(Icons.save),
-        backgroundColor: Color(0xFF6B8E23),
+            : const Icon(Icons.save),
       )
           : null,
     );
   }
 
   Widget _buildSideNavigation() {
-    return Container(
+    return SizedBox(
       width: 100,
       child: Column(
         children: [
-          SizedBox(height: 20),
-          CircleAvatar(
+          const SizedBox(height: 20),
+          const CircleAvatar(
             radius: 30,
             backgroundColor: Color(0xFF6B8E23),
             child: Icon(Icons.settings, size: 30, color: Colors.white),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           _buildNavItem(0, 'Index', Icons.list_alt),
           _buildNavItem(1, 'Kill Switch', Icons.warning_amber_rounded),
         ],
@@ -163,14 +172,14 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
         children: [
           Icon(
             icon,
-            color: isSelected ? Color(0xFF6B8E23) : Color(0xFF5D6D7E),
+            color: isSelected ? const Color(0xFF6B8E23) : const Color(0xFF5D6D7E),
             size: 28,
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             title,
             style: TextStyle(
-              color: isSelected ? Color(0xFF6B8E23) : Color(0xFF5D6D7E),
+              color: isSelected ? const Color(0xFF6B8E23) : const Color(0xFF5D6D7E),
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
@@ -182,8 +191,8 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
       target: isSelected ? 1 : 0,
     )
         .scale(
-      begin: Offset(1, 1),
-      end: Offset(1.1, 1.1),
+      begin: const Offset(1, 1),
+      end: const Offset(1.1, 1.1),
       duration: 300.ms,
       curve: Curves.easeInOut,
     );
@@ -191,13 +200,13 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
 
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             _selectedIndex == 0 ? 'Index Configuration' : 'Kill Switch Configuration',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2C3E50),
@@ -212,7 +221,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
               label: Text(_isEditing ? 'Cancel' : 'Edit'),
               onPressed: _toggleEditing,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isEditing ? Color(0xFFE74C3C) : Color(0xFF6B8E23),
+                backgroundColor: _isEditing ? const Color(0xFFE74C3C) : const Color(0xFF6B8E23),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -229,11 +238,11 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
       itemBuilder: (context, index) {
         final config = _indexConfigs[index];
         return Card(
-          margin: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           elevation: 4,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ExpansionTile(
-            title: Text(config['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3E50))),
+            title: Text(config['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3E50))),
             children: [
               _buildConfigItem('Max Quantity', config['maxQty'].toString()),
               _buildConfigItem('Default SL', config['defaultSL'].toString()),
@@ -251,15 +260,15 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
       itemBuilder: (context, index) {
         final config = _killSwitchConfigs[index];
         return Card(
-          margin: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           elevation: 4,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ListTile(
-            title: Text(config['haltPeriod'], style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
+            title: Text(config['haltPeriod'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
             subtitle: Text('Loss Percent: ${config['lossPercent']}%'),
             trailing: _isEditing
                 ? IconButton(
-              icon: Icon(Icons.edit, color: Color(0xFF6B8E23)),
+              icon: const Icon(Icons.edit, color: Color(0xFF6B8E23)),
               onPressed: () => _showKillSwitchEditDialog(index),
             )
                 : null,
@@ -271,11 +280,11 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
 
   Widget _buildConfigItem(String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 16, color: Color(0xFF34495E))),
+          Text(label, style: const TextStyle(fontSize: 16, color: Color(0xFF34495E))),
           _isEditing
               ? SizedBox(
             width: 100,
@@ -283,11 +292,11 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
               initialValue: value,
               decoration: InputDecoration(
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               ),
             ),
           )
-              : Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF6B8E23))),
+              : Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF6B8E23))),
         ],
       ),
     );
@@ -295,35 +304,35 @@ class _AppConfigScreenState extends State<AppConfigScreen> with SingleTickerProv
 
   void _showKillSwitchEditDialog(int index) {
     final config = _killSwitchConfigs[index];
-    TextEditingController _lossPercentController = TextEditingController(text: config['lossPercent'].toString());
+    TextEditingController lossPercentController = TextEditingController(text: config['lossPercent'].toString());
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit Kill Switch Config'),
+          title: const Text('Edit Kill Switch Config'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Halt Period: ${config['haltPeriod']}'),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
-                controller: _lossPercentController,
-                decoration: InputDecoration(labelText: 'Loss Percent'),
+                controller: lossPercentController,
+                decoration: const InputDecoration(labelText: 'Loss Percent'),
                 keyboardType: TextInputType.number,
               ),
             ],
           ),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
             ),
             ElevatedButton(
-              child: Text('Save'),
+              child: const Text('Save'),
               onPressed: () {
                 setState(() {
-                  config['lossPercent'] = double.parse(_lossPercentController.text);
+                  config['lossPercent'] = double.parse(lossPercentController.text);
                 });
                 Navigator.of(context).pop();
               },

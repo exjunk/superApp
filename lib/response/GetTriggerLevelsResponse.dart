@@ -1,4 +1,4 @@
-/// data : [{"dhanClientId":"1100323569","id":1,"index_name":"BANKNIFTY","option_type":"CE","price_level":52800.0},{"dhanClientId":"1100323569","id":2,"index_name":"BANKNIFTY","option_type":"CE","price_level":52780.0},{"dhanClientId":"1100323569","id":3,"index_name":"NIFTY","option_type":"PE","price_level":22001.0},{"dhanClientId":"1100323569","id":4,"index_name":"BANKNIFTY","option_type":"PE","price_level":52820.0},{"dhanClientId":"1100323569","id":5,"index_name":"SENSEX","option_type":"PE","price_level":72011.0},{"dhanClientId":"1100323569","id":6,"index_name":"BANKNIFTY","option_type":"CE","price_level":52840.0},{"dhanClientId":"1100323569","id":25,"index_name":"BANKNIFTY","option_type":"PE","price_level":52862.0},{"dhanClientId":"1100323569","id":26,"index_name":"BANKNIFTY","option_type":"CE","price_level":12211.0}]
+/// data : [{"dhanClientId":"1100323569","id":"142","index_name":"BANKNIFTY","option_type":"CE","price_level":"345.0","trade_confidence":"0.25"},{"dhanClientId":"1100323569","id":"144","index_name":"BANKNIFTY","option_type":"CE","price_level":"124.0","trade_confidence":"0.75"}]
 
 class GetTriggerLevelsResponse {
   GetTriggerLevelsResponse({
@@ -31,23 +31,26 @@ GetTriggerLevelsResponse copyWith({  List<Data>? data,
 }
 
 /// dhanClientId : "1100323569"
-/// id : 1
+/// id : "142"
 /// index_name : "BANKNIFTY"
 /// option_type : "CE"
-/// price_level : 52800.0
+/// price_level : "345.0"
+/// trade_confidence : "0.25"
 
 class Data {
   Data({
       String? dhanClientId, 
-      num? id, 
+      String? id, 
       String? indexName, 
       String? optionType, 
-      num? priceLevel,}){
+      String? priceLevel, 
+      String? tradeConfidence,}){
     _dhanClientId = dhanClientId;
     _id = id;
     _indexName = indexName;
     _optionType = optionType;
     _priceLevel = priceLevel;
+    _tradeConfidence = tradeConfidence;
 }
 
   Data.fromJson(dynamic json) {
@@ -56,28 +59,33 @@ class Data {
     _indexName = json['index_name'];
     _optionType = json['option_type'];
     _priceLevel = json['price_level'];
+    _tradeConfidence = json['trade_confidence'];
   }
   String? _dhanClientId;
-  num? _id;
+  String? _id;
   String? _indexName;
   String? _optionType;
-  num? _priceLevel;
+  String? _priceLevel;
+  String? _tradeConfidence;
 Data copyWith({  String? dhanClientId,
-  num? id,
+  String? id,
   String? indexName,
   String? optionType,
-  num? priceLevel,
+  String? priceLevel,
+  String? tradeConfidence,
 }) => Data(  dhanClientId: dhanClientId ?? _dhanClientId,
   id: id ?? _id,
   indexName: indexName ?? _indexName,
   optionType: optionType ?? _optionType,
   priceLevel: priceLevel ?? _priceLevel,
+  tradeConfidence: tradeConfidence ?? _tradeConfidence,
 );
   String? get dhanClientId => _dhanClientId;
-  num? get id => _id;
+  String? get id => _id;
   String? get indexName => _indexName;
   String? get optionType => _optionType;
-  num? get priceLevel => _priceLevel;
+  String? get priceLevel => _priceLevel;
+  String? get tradeConfidence => _tradeConfidence;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -86,6 +94,7 @@ Data copyWith({  String? dhanClientId,
     map['index_name'] = _indexName;
     map['option_type'] = _optionType;
     map['price_level'] = _priceLevel;
+    map['trade_confidence'] = _tradeConfidence;
     return map;
   }
 

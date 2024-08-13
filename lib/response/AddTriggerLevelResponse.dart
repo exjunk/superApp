@@ -37,12 +37,15 @@ class Data {
       num? id, 
       String? indexName, 
       String? optionType, 
-      num? priceLevel,}){
+      num? priceLevel,
+      num? tradeConfidence,}){
     _dhanClientId = dhanClientId;
     _id = id;
     _indexName = indexName;
     _optionType = optionType;
     _priceLevel = priceLevel;
+    _tradeConfidence = tradeConfidence;
+
 }
 
   Data.fromJson(dynamic json) {
@@ -51,28 +54,33 @@ class Data {
     _indexName = json['index_name'];
     _optionType = json['option_type'];
     _priceLevel = json['price_level'];
+    _tradeConfidence = json['trade_confidence'];
   }
   String? _dhanClientId;
   num? _id;
   String? _indexName;
   String? _optionType;
   num? _priceLevel;
+  num? _tradeConfidence;
 Data copyWith({  String? dhanClientId,
   num? id,
   String? indexName,
   String? optionType,
   num? priceLevel,
+  num? tradeConfidence,
 }) => Data(  dhanClientId: dhanClientId ?? _dhanClientId,
   id: id ?? _id,
   indexName: indexName ?? _indexName,
   optionType: optionType ?? _optionType,
   priceLevel: priceLevel ?? _priceLevel,
+  tradeConfidence: tradeConfidence ?? _tradeConfidence
 );
   String? get dhanClientId => _dhanClientId;
   num? get id => _id;
   String? get indexName => _indexName;
   String? get optionType => _optionType;
   num? get priceLevel => _priceLevel;
+  num? get tradeConfidence => _tradeConfidence;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -81,6 +89,7 @@ Data copyWith({  String? dhanClientId,
     map['index_name'] = _indexName;
     map['option_type'] = _optionType;
     map['price_level'] = _priceLevel;
+    map['trade_confidence'] = _tradeConfidence;
     return map;
   }
 

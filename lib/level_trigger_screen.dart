@@ -35,11 +35,12 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
 
           List<Map<String, dynamic>> tempList = [];
           for (triggerLevel.Data item in data) {
-            var map = <String,String>{};
+            var map = <String,dynamic>{};
             map["id"] = item.id!.toString() ;
             map["indexName"] =  item.indexName! ;
             map["triggerPrice"] = item.priceLevel!.toString();
             map["optionType"] = item.optionType!;
+            map["trade_confidence"] = item.tradeConfidence!;
             tempList.add(map);
           }
           setState(() {
@@ -123,7 +124,7 @@ class _LevelMarkerScreenState extends State<LevelMarkerScreen> {
                     child: ListTile(
                       title: Text(items[index]['indexName'], style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(
-                        'Trigger Price: ${items[index]['triggerPrice']}, Option Type: ${items[index]['optionType']}',
+                        'Trigger Price: ${items[index]['triggerPrice']}, Option Type: ${items[index]['optionType']}, Trade Confidence: ${items[index]['trade_confidence']}',
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -178,6 +179,7 @@ class _EditScreenState extends State<EditScreen> {
   late String _optionType;
   late String _indexName;
   late String _id;
+  late double _tradeConfidence;
   var apiUtils = ApiUtils();
 
   @override
@@ -186,162 +188,212 @@ class _EditScreenState extends State<EditScreen> {
     _indexName = widget.item['indexName'] ?? bankNifty;
     _triggerPrice = widget.item['triggerPrice'] ?? '';
     _optionType = widget.item['optionType'] ?? optionTypeCE;
-    _id = widget.item['id']?? '';
+    _id = widget.item['id'] ?? '';
+    if(widget.item['trade_confidence'] != null){
+      _tradeConfidence =  double.parse(widget.item['trade_confidence']);
+    }else{
+      _tradeConfidence = 0.0;
+    }
+
   }
 
-  Future<addTrigger.AddTriggerLevelResponse?>  _onSavePress() async{
-     final response = await apiUtils.makeGetApiCall("${apiBaseUrl}addLevels?&id=$_id&dhan_client_id=$dhanClientId&index_name=$_indexName&option_type=$_optionType&price_level=$_triggerPrice");
-     if (response != null) {
-       try {
-         final Map parsed = jsonDecode(response.body);
-         final addTriggerResponse = addTrigger.AddTriggerLevelResponse.fromJson(parsed);
-          return addTriggerResponse;
-       } on Exception catch(e){
-         Logger.printLogs(e);
-       }
-     }
-     return null;
-     //Logger.printLogs(response);
+  Future<void> _onSavePress() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      final response = await apiUtils.makeGetApiCall("${apiBaseUrl}addLevels?&id=$_id&dhan_client_id=$dhanClientId&index_name=$_indexName&option_type=$_optionType&price_level=$_triggerPrice&trade_confidence=$_tradeConfidence");
+      if (response != null) {
+        try {
+          final Map parsed = jsonDecode(response.body);
+          final addTriggerResponse = addTrigger.AddTriggerLevelResponse.fromJson(parsed);
+          if (addTriggerResponse.data != null) {
+            _id = addTriggerResponse.data!.id.toString();
+            _triggerPrice = addTriggerResponse.data!.priceLevel.toString();
+            _indexName = addTriggerResponse.data!.indexName.toString();
+            _optionType = addTriggerResponse.data!.optionType.toString();
+            _tradeConfidence = addTriggerResponse.data!.tradeConfidence!.toDouble();
+
+
+            Navigator.pop(context, {
+              'indexName': _indexName,
+              'triggerPrice': _triggerPrice,
+              'optionType': _optionType,
+              'id': _id,
+              'trade_confidence': _tradeConfidence.toString(),
+            });
+          }
+        } on Exception catch(e) {
+          Logger.printLogs(e);
+          if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error saving data: ${e.toString()}')),
+            );
+          }
+        }
+      } else {
+        if(mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error: Unable to save data')),
+          );
+        }
+      }
+    }
   }
 
+  String _getConfidenceLabel(double value) {
+    if (value == 0.0) return '0%';
+    if (value == 0.25) return '25%';
+    if (value == 0.5) return '75%';
+    if (value == 1.0) return '100%';
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Item'),
+        backgroundColor: Colors.blue,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Index Name', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    RadioListTile(
-                      title: const Text(bankNifty),
-                      value: bankNifty,
-                      groupValue: _indexName,
-                      onChanged: (value) {
-                        setState(() {
-                          _indexName = value.toString();
-                        });
-                      },
-                    ),
-                    RadioListTile(
-                      title: const Text(nifty),
-                      value: nifty,
-                      groupValue: _indexName,
-                      onChanged: (value) {
-                        setState(() {
-                          _indexName = value.toString();
-                        });
-                      },
-                    ),
-                    RadioListTile(
-                      title: const Text(sensex),
-                      value: sensex,
-                      groupValue: _indexName,
-                      onChanged: (value) {
-                        setState(() {
-                          _indexName = value.toString();
-                        });
-                      },
-                    ),
-                    RadioListTile(
-                      title: const Text(finNifty),
-                      value: finNifty,
-                      groupValue: _indexName,
-                      onChanged: (value) {
-                        setState(() {
-                          _indexName = value.toString();
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      initialValue: _triggerPrice,
-                      decoration: const InputDecoration(
-                        labelText: 'Trigger Price',
-                        border: OutlineInputBorder(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.blue[50]!, Colors.blue[100]!],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Index Name', style: Theme.of(context).textTheme.headlineMedium),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [bankNifty, nifty, sensex, finNifty].map((String value) {
+                          return ChoiceChip(
+                            label: Text(value),
+                            selected: _indexName == value,
+                            onSelected: (bool selected) {
+                              setState(() {
+                                _indexName = value;
+                              });
+                            },
+                          );
+                        }).toList(),
                       ),
-                      keyboardType: TextInputType.number,
-                      onSaved: (value) => _triggerPrice = value!,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a trigger price';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Option Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    DropdownButtonFormField<String>(
-                      value: _optionType,
-                      items: [optionTypeCE,optionTypePE].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _optionType = newValue!;
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            _onSavePress().then((addTriggerResponse){
-                              if(addTriggerResponse != null) {
-                                _id = addTriggerResponse.data!.id.toString();
-                                _triggerPrice =
-                                    addTriggerResponse.data!.priceLevel
-                                        .toString();
-                                _indexName = addTriggerResponse.data!.indexName
-                                    .toString();
-                                _optionType =
-                                    addTriggerResponse.data!.optionType
-                                        .toString();
-
-                                Navigator.pop(context, {
-                                  'indexName': _indexName,
-                                  'triggerPrice': _triggerPrice,
-                                  'optionType': _optionType,
-                                  'id':_id
-                                });
-                              }
-                            });
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        initialValue: _triggerPrice,
+                        decoration: InputDecoration(
+                          labelText: 'Trigger Price',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        keyboardType: TextInputType.number,
+                        onSaved: (value) => _triggerPrice = value!,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a trigger price';
                           }
+                          return null;
                         },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          textStyle: const TextStyle(fontSize: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      const SizedBox(height: 24),
+                      Text('Option Type', style: Theme.of(context).textTheme.headlineMedium),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _optionType,
+                        items: [optionTypeCE, optionTypePE].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _optionType = newValue!;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text('Trade Confidence', style: Theme.of(context).textTheme.headlineMedium),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${(_tradeConfidence * 100).toInt()}%',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: Colors.blue[700],
+                          inactiveTrackColor: Colors.blue[100],
+                          trackShape: const RoundedRectSliderTrackShape(),
+                          trackHeight: 4.0,
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12.0),
+                          thumbColor: Colors.blueAccent,
+                          overlayColor: Colors.blue.withAlpha(32),
+                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 28.0),
+                          tickMarkShape: const RoundSliderTickMarkShape(),
+                          activeTickMarkColor: Colors.blue[700],
+                          inactiveTickMarkColor: Colors.blue[100],
+                          valueIndicatorShape: const PaddleSliderValueIndicatorShape(),
+                          valueIndicatorColor: Colors.blueAccent,
+                          valueIndicatorTextStyle: const TextStyle(
+                            color: Colors.white,
                           ),
                         ),
-                        child: const Text('Save'),
+                        child: Slider(
+                          value: _tradeConfidence,
+                          min: 0,
+                          max: 1,
+                          divisions: 4,
+                          label: _getConfidenceLabel(_tradeConfidence),
+                          onChanged: (double value) {
+                            setState(() {
+                              _tradeConfidence = value;
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 32),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _onSavePress,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                            textStyle: const TextStyle(fontSize: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          child: const Text('Save',style: TextStyle(color: Colors.white),)
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
