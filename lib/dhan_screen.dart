@@ -34,6 +34,12 @@ class _DhanPositionsState extends State<DhanPositions> {
   final Set<String> _trackSecurityID = {};
   bool _initialDataLoaded = false;
 
+  Map<String, double> _pnlData = {
+    'total_pnl': 0.0,
+    'realized_pnl': 0.0,
+    'unrealized_pnl': 0.0,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +68,7 @@ class _DhanPositionsState extends State<DhanPositions> {
   void _initializeSocketListeners() {
     socketService.socket.on('order_status', _handleOrderStatus);
     socketService.socket.on('market_feed', _handleMarketFeed);
+    socketService.socket.on('pnl', _handlePnlFeed);
   }
 
   void _handleOrderStatus(data) {
@@ -75,6 +82,17 @@ class _DhanPositionsState extends State<DhanPositions> {
       Logger.printLogs(getOrderFromIdResponse.data!.tradingSymbol);
       _handlePositionsButtonPress();
     }
+  }
+
+  void _handlePnlFeed(dynamic data) {
+    //Logger.printLogs(data);
+    setState(() {
+      _pnlData = {
+        'total_pnl': data['total_pnl'].toDouble(),
+        'realized_pnl': data['realized_pnl'].toDouble(),
+        'unrealized_pnl': data['unrealized_pnl'].toDouble(),
+      };
+    });
   }
 
   void _handleMarketFeed(dynamic data) {
@@ -301,27 +319,19 @@ class _DhanPositionsState extends State<DhanPositions> {
           ),
           const VerticalDivider(thickness: 1),
           Expanded(
-            child: Stack(
-              children: [
-                _buildRightSide(),
-                Positioned(
-                  bottom: 16.0,
-                  right: 16.0,
-                  child: FloatingActionButton(
-                    onPressed: () async {
-                      //final response = await apiUtils.makeGetApiCall("${apiBaseUrl}test2");
-                      _navigateToTriggerLevelScreen();
-                    },
-                    child: const Icon(Icons.add),
-                  ),
-                ),
-              ],
-            ),
+            child: _buildRightSide(),
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          _navigateToTriggerLevelScreen();
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
+
 
   Widget _buildPositionsList() {
     return Expanded(
@@ -522,38 +532,92 @@ class _DhanPositionsState extends State<DhanPositions> {
   }
 
   Widget _buildRightSide() {
-    return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          fundLimit(startLimit, availableLimit),
-          const Text('Select Index to trade :'),
-          _buildRadioButtons(),
-          const SizedBox(height: 20),
-          _buildTradeButtons(),
-        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            fundLimit(startLimit, availableLimit),
+            const SizedBox(height: 20),
+            const Text(
+              'Select Index to trade :',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            _buildRadioButtons(),
+            const SizedBox(height: 20),
+            _buildTradeButtons(),
+          ],
+        ),
       ),
     );
   }
 
   Widget fundLimit(double startLimit, double availableBalance) {
-    var pnl = availableBalance - startLimit;
-    var color = pnl < 0 ? Colors.red : Colors.teal;
+    var pnl = _pnlData['total_pnl'] ?? 0.0;
+    var color = pnl < 0 ? Colors.red : Colors.green;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Account Summary',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildInfoItem('Start of Day Limit', startLimit.toStringAsFixed(2)),
+              _buildInfoItem('Available Balance', availableBalance.toStringAsFixed(2)),
+              _buildInfoItem('P&L', pnl.toStringAsFixed(2), color: color),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildInfoItem('Realized P&L', _pnlData['realized_pnl']?.toStringAsFixed(2) ?? '0.00'),
+              _buildInfoItem('Unrealized P&L', _pnlData['unrealized_pnl']?.toStringAsFixed(2) ?? '0.00'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value, {Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Start Of Day Limit: $startLimit",
+          label,
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
-        const VerticalDivider(width: 20.0, thickness: 1.0),
+        const SizedBox(height: 4),
         Text(
-          'Available Balance: $availableBalance',
-        ),
-        const VerticalDivider(width: 20.0, thickness: 1.0),
-        Text(
-          'P&L: $pnl',
-          style: TextStyle(color: color),
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color ?? Colors.black,
+          ),
         ),
       ],
     );

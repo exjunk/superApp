@@ -192,7 +192,7 @@ class _EditScreenState extends State<EditScreen> {
     if(widget.item['trade_confidence'] != null){
       _tradeConfidence =  double.parse(widget.item['trade_confidence']);
     }else{
-      _tradeConfidence = 0.0;
+      _tradeConfidence = 0.25;
     }
 
   }
